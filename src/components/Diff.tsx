@@ -26,13 +26,19 @@ function generateDiffView(diffs: Change[]) {
       count++
     } else if (!firstChange.added) {
       const normalCellLeft = (
-        <div key={'normal-left' + count} className='p-1 rounded-sm bg-white dark:bg-black'>
-          <span className='text-sm pr-2 text-gray-500'>{count}</span>{dealLineBreak(firstChange.value)}
+        <div key={'normal-left' + count} className='p-1 rounded-sm bg-white dark:bg-black flex'>
+          <div className='text-gray-400 dark:text-gray-500 w-5 tracking-tight mr-1'>{count}</div>
+          <div className='flex-1'>
+            {dealLineBreak(firstChange.value)}
+          </div>
         </div>
       )
       const normalCellRight = (
-        <div key={'normal-right' + count} className='p-1 rounded-sm bg-white dark:bg-black'>
-          <span className='text-sm pr-2 text-gray-500'>{count}</span>{dealLineBreak(firstChange.value)}
+        <div key={'normal-right' + count} className='p-1 rounded-sm bg-white dark:bg-black flex'>
+          <div className='text-gray-400 dark:text-gray-500 w-5 tracking-tight mr-1'>{count}</div>
+          <div className='flex-1'>
+            {dealLineBreak(firstChange.value)}
+          </div>
         </div>
       )
       count++
@@ -74,35 +80,48 @@ function parseLineDiff(removed: Change, added: Change) {
 
 function parsePres(pres: Token[], side: 'left' | 'right', lineNumber: number) {
   return (
-    <div className={[side === 'left' ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900', 'p-1 rounded-sm'].join(' ')}>
-      <span className='text-sm pr-2 text-gray-500'>{lineNumber}</span>
-      {pres.map(({ type, value }, i) => {
-        return (
-          <span
-            key={i}
-            className={[
-              type === 'added' ? 'bg-green-300 dark:bg-green-700' : '',
-              type === 'removed' ? 'bg-red-300 dark:bg-red-700' : '',
-              'rounded-sm'
-            ].join(' ')}
-          >
-            {type === 'ignored' ? '' : dealLineBreak(value)}
-          </span>
-        )
-      })}
+    <div key={`${side}-${lineNumber}`} className={[side === 'left' ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900', 'p-1 rounded-sm flex'].join(' ')}>
+      <div className='text-gray-400 dark:text-gray-500 w-5 tracking-tight mr-1'>{lineNumber}</div>
+      <div className='flex-1'>
+        {pres.map(({ type, value }, i) => {
+          return (
+            <span
+              key={i}
+              className={[
+                type === 'added' ? 'bg-green-300 dark:bg-green-700' : '',
+                type === 'removed' ? 'bg-red-300 dark:bg-red-700' : '',
+                'rounded-sm'
+              ].join(' ')}
+            >
+              {type === 'ignored' ? '' : dealLineBreak(value)}
+            </span>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
 function dealLineBreak(str: string) {
-  if (str.endsWith('\n\n')) {
-    return (<>
-      {str.replace(/^(\n)*/, '')}
-      <br />
-      <br />
-    </>)
+  let trimedStr = str
+    .replace(/^(\n)*/, '')
+    .replace(/\n$/, '')
+  const result: Array<JSX.Element | string> = []
+  if (trimedStr.endsWith('\n')) {
+    trimedStr = trimedStr.replace(/(\n)*$/, '')
+    result.push(
+      <>
+        <br />
+        <br />
+      </>
+    )
   }
-  return str.replace(/^(\n)*/, '')
+  const segs = trimedStr.split('\n')
+  result.unshift(...segs.reduce<typeof result>((prev, curr) => {
+    prev.push(<span dangerouslySetInnerHTML={{ __html: curr.replace(' ', '&nbsp;') }}></span>, <br key={curr} />)
+    return prev
+  }, []).slice(0, -1))
+  return result
 }
 
 const contentPresets = [
@@ -126,11 +145,15 @@ export default function Diff() {
     }
     const lintRes = run(inputRef.current, { rules: { preset: 'default' } })
     const result = lintRes.result
-    setChanges(diffLines(
+    const lineDiffs = diffLines(
       inputRef.current,
       result,
       { ignoreWhitespace: false }
-    ))
+    )
+    if (import.meta.env.DEV) {
+      console.log(lineDiffs)
+    }
+    setChanges(lineDiffs)
   }, [])
 
   return (
