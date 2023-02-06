@@ -130,7 +130,16 @@ const contentPresets = [
 半角逗号加空格结尾, "半角括号包裹"，半角冒号结尾:
 
 + 全角句号结尾。
-+ 全半角内容之间no空格`
++ 全半角内容之间no空格`,
+  `- 当注释用来描述代码时，应该保证使用 **描述性语句** 而非 **祈使句**
+
+    - Opens the file   (正确)
+    - Open the file    (错误)
+
+- 使用 "this" 而非"the"来指代当前事物
+
+    - Gets the toolkit for this component   (推荐)
+    - Gets the toolkit for the component    (不推荐)`,
 ]
 
 export default function Diff() {
