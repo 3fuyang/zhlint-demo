@@ -27,14 +27,15 @@ function generateDiffView(diffs: Change[]) {
     } else if (!firstChange.added) {
       const normalCellLeft = (
         <div key={'normal-left' + count} className='p-1 rounded-sm bg-white dark:bg-black'>
-          <span className='text-sm pr-2 text-gray-500'>{count++}</span>{dealLineBreak(firstChange.value)}
+          <span className='text-sm pr-2 text-gray-500'>{count}</span>{dealLineBreak(firstChange.value)}
         </div>
       )
       const normalCellRight = (
         <div key={'normal-right' + count} className='p-1 rounded-sm bg-white dark:bg-black'>
-          <span className='text-sm pr-2 text-gray-500'>{count++}</span>{dealLineBreak(firstChange.value)}
+          <span className='text-sm pr-2 text-gray-500'>{count}</span>{dealLineBreak(firstChange.value)}
         </div>
       )
+      count++
       result.push(normalCellLeft, normalCellRight)
     }
   }
@@ -104,24 +105,27 @@ function dealLineBreak(str: string) {
   return str.replace(/^(\n)*/, '')
 }
 
-export default function Diff() {
-  /*
-# Overview
+const contentPresets = [
+  `# Overview
 
 半角逗号加空格结尾, "半角括号包裹"，半角冒号结尾:
 
 + 全角句号结尾。
-+ 全半角内容之间no空格
-  */
++ 全半角内容之间no空格`
+]
+
+export default function Diff() {
+  const editorRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef('')
   const [changes, setChanges] = useState<Change[]>()
 
-  const handleClick = useCallback(() => {
+  const triggerLint = useCallback(() => {
     if (!inputRef.current) {
       alert('Invalid input.')
       return
     }
-    const result = run(inputRef.current, { rules: { preset: 'default' } }).result
+    const lintRes = run(inputRef.current, { rules: { preset: 'default' } })
+    const result = lintRes.result
     setChanges(diffLines(
       inputRef.current,
       result,
@@ -131,18 +135,53 @@ export default function Diff() {
 
   return (
     <div>
-      <div>
+      {/* Btn Box */}
+      <div className='flex gap-4 overflow-auto'>
         <button
           id="lint-btn"
           type="button"
           className="rounded-sm px-6 py-1 mb-4 transition-colors bg-green-600 hover:bg-green-500 focus:bg-green-500 dark:bg-green-800 dark:hover:bg-green-700 dark:focus:bg-green-700 text-white tracking-wide"
-          onClick={() => handleClick()}
+          onClick={() => triggerLint()}
         >
           Lint
         </button>
+        {contentPresets.map((preset, i) => (
+          <button
+            id={`preset-btn-${i + 1}`}
+            type="button"
+            key={i}
+            className="rounded-sm px-6 py-1 mb-4 transition-colors bg-green-600 hover:bg-green-500 focus:bg-green-500 dark:bg-green-800 dark:hover:bg-green-700 dark:focus:bg-green-700 text-white tracking-wide"
+            onClick={() => {
+              inputRef.current = preset
+              if (editorRef.current) {
+                editorRef.current.value = preset
+                triggerLint()
+              }
+            }}
+          >
+            Preset {i + 1}
+          </button>
+        ))}
+        <div className='flex-1 flex flex-row-reverse'>
+            <button
+              id="clr-btn"
+              type="button"
+              className="rounded-sm px-6 py-1 mb-4 transition-colors bg-red-600 hover:bg-red-500 focus:bg-red-500 dark:bg-red-800 dark:hover:bg-red-700 dark:focus:bg-red-700 text-white tracking-wide"
+              onClick={() => {
+                inputRef.current = ''
+                if (editorRef.current) {
+                  editorRef.current.value = ''
+                  setChanges(undefined)
+                }
+              }}
+            >
+              Clear
+            </button>
+        </div>
       </div>
       {/* Editor */}
       <textarea
+        ref={editorRef}
         placeholder='Type content which needs linting here.'
         className='dark:bg-gray-900 dark:border-gray-500 rounded-sm overflow-auto border p-4 w-full bg-gray-100/95 outline-none'
         rows={6}
