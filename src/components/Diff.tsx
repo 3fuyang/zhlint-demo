@@ -26,7 +26,7 @@ function generateDiffView(diffs: Change[]) {
       count++
     } else if (!firstChange.added) {
       const normalCell = (
-        <div className='p-1 rounded-sm bg-white'>
+        <div className='p-1 rounded-sm bg-white dark:bg-black'>
           <span className='text-sm pr-2 text-gray-500'>{count++}</span>{dealLineBreak(firstChange.value)}
         </div>
       )
@@ -68,15 +68,16 @@ function parseLineDiff(removed: Change, added: Change) {
 
 function parsePres(pres: Token[], side: 'left' | 'right', lineNumber: number) {
   return (
-    <div className={[side === 'left' ? 'bg-red-100' : 'bg-green-100', 'p-1 rounded-sm'].join(' ')}>
+    <div className={[side === 'left' ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900', 'p-1 rounded-sm'].join(' ')}>
       <span className='text-sm pr-2 text-gray-500'>{lineNumber}</span>
       {pres.map(({ type, value }, i) => {
         return (
           <span
             key={i}
             className={[
-              type === 'added' ? 'bg-green-300' : '',
-              type === 'removed' ? 'bg-red-300' : '',
+              type === 'added' ? 'bg-green-300 dark:bg-green-700' : '',
+              type === 'removed' ? 'bg-red-300 dark:bg-red-700' : '',
+              'rounded-sm'
             ].join(' ')}
           >
             {type === 'ignored' ? '' : dealLineBreak(value)}
@@ -108,7 +109,6 @@ export default function Diff() {
 + 全半角内容之间no空格
   */
   const inputRef = useRef('')
-  const editorRef = useRef<HTMLTextAreaElement>(null)
   const [changes, setChanges] = useState<Change[]>()
 
   const handleClick = useCallback(() => {
@@ -130,7 +130,7 @@ export default function Diff() {
         <button
           id="lint-btn"
           type="button"
-          className="rounded-sm px-6 py-1 mb-4 transition-colors bg-green-600 hover:bg-green-500 focus:bg-green-500 text-white tracking-wide"
+          className="rounded-sm px-6 py-1 mb-4 transition-colors bg-green-600 hover:bg-green-500 focus:bg-green-500 dark:bg-green-800 dark:hover:bg-green-700 dark:focus:bg-green-700 text-white tracking-wide"
           onClick={() => handleClick()}
         >
           Lint
@@ -138,16 +138,21 @@ export default function Diff() {
       </div>
       {/* Editor */}
       <textarea
-        ref={editorRef}
         placeholder='Type content which needs linting here.'
-        className='rounded-sm overflow-auto border p-4 w-full bg-gray-100/95 outline-none'
+        className='dark:bg-gray-900 dark:border-gray-500 rounded-sm overflow-auto border p-4 w-full bg-gray-100/95 outline-none'
         rows={6}
         onChange={(e) => inputRef.current = e.target.value}
       />
       {/* Diff View */}
-      <div className='text-slate-600 rounded border p-4 grid grid-cols-2 items-center'>
+      <div className='overflow-auto text-slate-600 dark:text-slate-300 dark:border-gray-500 rounded border p-4 grid grid-cols-2 items-center'>
         {changes
-          ? generateDiffView(changes)
+          ? (
+            <>
+              <h2 className='font-semibold'>Before</h2>
+              <h2 className='font-semibold'>After</h2>
+              {generateDiffView(changes)}
+            </>
+          )
           : (
             <h2 className='col-span-2 mx-auto tracking-wide'>Diff View</h2>
           )}
