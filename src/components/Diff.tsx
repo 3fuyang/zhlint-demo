@@ -25,12 +25,17 @@ function generateDiffView(diffs: Change[]) {
       result.push(parsePres(leftPre, 'left', count), parsePres(rightPre, 'right', count))
       count++
     } else if (!firstChange.added) {
-      const normalCell = (
-        <div className='p-1 rounded-sm bg-white dark:bg-black'>
+      const normalCellLeft = (
+        <div key={'normal-left' + count} className='p-1 rounded-sm bg-white dark:bg-black'>
           <span className='text-sm pr-2 text-gray-500'>{count++}</span>{dealLineBreak(firstChange.value)}
         </div>
       )
-      result.push(normalCell, normalCell)
+      const normalCellRight = (
+        <div key={'normal-right' + count} className='p-1 rounded-sm bg-white dark:bg-black'>
+          <span className='text-sm pr-2 text-gray-500'>{count++}</span>{dealLineBreak(firstChange.value)}
+        </div>
+      )
+      result.push(normalCellLeft, normalCellRight)
     }
   }
 
