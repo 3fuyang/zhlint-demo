@@ -1,0 +1,64 @@
+---
+import 'highlight.js/styles/github.css'
+import 'diff2html/bundles/css/diff2html.min.css'
+---
+
+<div>
+  <div>
+    <button
+      id="lint-btn"
+      type="button"
+      class="rounded-sm px-6 py-1 mb-4 transition-colors bg-green-600 hover:bg-green-500 focus:bg-green-500 text-white tracking-wide"
+    >
+      Lint
+    </button>
+  </div>
+  <div id="diff-view"></div>
+</div>
+<script>
+import { run } from 'zhlint'
+import { createPatch, diffChars } from 'diff'
+import { parse, html } from "diff2html"
+
+const lintBtn = document.getElementById('lint-btn')
+const diffView = document.getElementById('diff-view')
+
+//const dmp = new diff_match_patch()
+const prev = `# Overview
+
+半角逗号加空格结尾, "半角括号包裹"，半角冒号结尾:
+
++ 全角句号结尾。
++ 全半角内容之间no空格
+`
+
+lintBtn?.addEventListener('click', () => {
+  const result = run(prev, { rules: { preset: 'default' } }).result
+
+  // const diff = dmp.diff_main(prev, result)
+  // const patch = dmp.patch_make(diff)
+  const patchText = createPatch(
+    'test.md',
+    prev,
+    result,
+    '',
+    '',
+    {
+      ignoreWhitespace: false,
+    }
+  )
+
+  console.log(diffChars(prev, result))
+
+  console.log(patchText)
+
+  const diffResult = parse(patchText, {
+    matching: 'words',
+    outputFormat: 'side-by-side',
+    diffStyle: 'char',
+  })
+  const outputHtml = html(diffResult)
+
+  diffView && (diffView.innerHTML = outputHtml)
+})
+</script>
