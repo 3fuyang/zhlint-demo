@@ -149,29 +149,17 @@ function parsePres(pres: Token[], side: 'left' | 'right', lineNumber: number) {
  * @param str The value of an instance of `Token`.
  */
 function escapeHTMLTags(str: string) {
-  let trimedStr = str
-    .replace(/^(\n)*/, '')
-    .replace(/\n$/, '')
-
   const result: Array<JSX.Element | string> = []
-
-  if (trimedStr.endsWith('\n')) {
-    trimedStr = trimedStr.replace(/(\n)*$/, '')
-    result.push(
-      <>
-        <br key='trailing-line-break-1' />
-        <br key='trailing-line-break-2' />
-      </>
-    )
-  }
-  const segs = trimedStr.split('\n')
+  const segs = str.split('\n')
   result.unshift(
     ...segs
       .reduce<typeof result>((prev, curr, index) => {
-        prev.push(
-          curr,
-          <br key={`${index + 1}-br`} />
-        )
+        curr
+          ? prev.push(
+              curr,
+              <br key={`${index + 1}-br`} />
+            )
+          : prev.push(<br key={`${index + 1}-br`} />)
         return prev
       }, [])
       // Remove the trailing line break.
