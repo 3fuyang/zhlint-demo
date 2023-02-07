@@ -1,4 +1,4 @@
-import { ChangeEventHandler, forwardRef } from 'react'
+import { type ChangeEventHandler, forwardRef } from 'react'
 
 interface EProps {
   onChange: ChangeEventHandler<HTMLTextAreaElement>
