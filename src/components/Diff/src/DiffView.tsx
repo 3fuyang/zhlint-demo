@@ -56,18 +56,18 @@ function generateDiffView(diffs: Change[]) {
     } else if (!firstChange.added) {
       const normalCellLeft = (
         <div
-          key={'normal-left' + count}
+          key={`${count}-normal-left`}
           className='p-1 rounded-sm bg-white dark:bg-black flex'>
           <LineNumber no={count} />
-          <div className='flex-1'>{escapeHTMLTags(firstChange.value)}</div>
+          <div className='flex-1 whitespace-pre-wrap'>{escapeHTMLTags(firstChange.value)}</div>
         </div>
       )
       const normalCellRight = (
         <div
-          key={'normal-right' + count}
+          key={`${count}-normal-right`}
           className='p-1 rounded-sm bg-white dark:bg-black flex'>
           <LineNumber no={count} />
-          <div className='flex-1'>{escapeHTMLTags(firstChange.value)}</div>
+          <div className='flex-1 whitespace-pre-wrap'>{escapeHTMLTags(firstChange.value)}</div>
         </div>
       )
       count++
@@ -116,24 +116,24 @@ function parseLineDiff(removed: Change, added: Change) {
 function parsePres(pres: Token[], side: 'left' | 'right', lineNumber: number) {
   return (
     <div
-      key={`${side}-${lineNumber}`}
+      key={`${lineNumber}-${side}-pre`}
       className={[
         side === 'left'
           ? 'bg-red-100 dark:bg-red-900'
           : 'bg-green-100 dark:bg-green-900',
         'p-1 rounded-sm flex'
-      ].join(' ')}>
+      ].join(' ').trim()}>
       <LineNumber no={lineNumber} />
       <div className='flex-1'>
         {pres.map(({ type, value }, i) => {
           return (
             <span
-              key={i}
+              key={`${i + 1}-token-${type}`}
               className={[
                 type === 'added' ? 'bg-green-300 dark:bg-green-700' : '',
                 type === 'removed' ? 'bg-red-300 dark:bg-red-700' : '',
-                'rounded-sm'
-              ].join(' ')}>
+                'rounded-sm whitespace-pre-wrap'
+              ].join(' ').trim()}>
                 {escapeHTMLTags(value)}
             </span>
           )
@@ -151,9 +151,6 @@ function escapeHTMLTags(str: string) {
   let trimedStr = str
     .replace(/^(\n)*/, '')
     .replace(/\n$/, '')
-    .replace(' ', '&nbsp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
 
   const result: Array<JSX.Element | string> = []
 
@@ -161,8 +158,8 @@ function escapeHTMLTags(str: string) {
     trimedStr = trimedStr.replace(/(\n)*$/, '')
     result.push(
       <>
-        <br />
-        <br />
+        <br key='trailing-line-break-1' />
+        <br key='trailing-line-break-2' />
       </>
     )
   }
@@ -171,8 +168,8 @@ function escapeHTMLTags(str: string) {
     ...segs
       .reduce<typeof result>((prev, curr, index) => {
         prev.push(
-          <span key={curr + '-' + index} dangerouslySetInnerHTML={{ __html: curr }}></span>,
-          <br key={curr + 'br-' + index} />
+          curr,
+          <br key={`${index + 1}-br`} />
         )
         return prev
       }, [])
