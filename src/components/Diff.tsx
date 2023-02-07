@@ -2,6 +2,11 @@ import { run } from 'zhlint'
 import { type Change, diffChars, diffLines } from 'diff'
 import { useCallback, useState, useRef } from 'react'
 
+import { LineNumber } from './LineNumber'
+
+/**
+ * An abstraction of text elements emitted by diffing.
+ */
 interface Token {
   type: 'added' | 'removed' | 'ignored' | 'normal'
   value: string
@@ -29,7 +34,7 @@ function generateDiffView(diffs: Change[]) {
     } else if (!firstChange.added) {
       const normalCellLeft = (
         <div key={'normal-left' + count} className='p-1 rounded-sm bg-white dark:bg-black flex'>
-          <div className='text-gray-400 dark:text-gray-500 w-5 tracking-tight mr-1'>{count}</div>
+          <LineNumber no={count} />
           <div className='flex-1'>
             {dealLineBreak(firstChange.value)}
           </div>
@@ -37,7 +42,7 @@ function generateDiffView(diffs: Change[]) {
       )
       const normalCellRight = (
         <div key={'normal-right' + count} className='p-1 rounded-sm bg-white dark:bg-black flex'>
-          <div className='text-gray-400 dark:text-gray-500 w-5 tracking-tight mr-1'>{count}</div>
+          <LineNumber no={count} />
           <div className='flex-1'>
             {dealLineBreak(firstChange.value)}
           </div>
@@ -89,7 +94,7 @@ function parseLineDiff(removed: Change, added: Change) {
 function parsePres(pres: Token[], side: 'left' | 'right', lineNumber: number) {
   return (
     <div key={`${side}-${lineNumber}`} className={[side === 'left' ? 'bg-red-100 dark:bg-red-900' : 'bg-green-100 dark:bg-green-900', 'p-1 rounded-sm flex'].join(' ')}>
-      <div className='text-gray-400 dark:text-gray-500 w-5 tracking-tight mr-1'>{lineNumber}</div>
+      <LineNumber no={lineNumber} />
       <div className='flex-1'>
         {pres.map(({ type, value }, i) => {
           return (
@@ -175,7 +180,7 @@ export default function Diff() {
       { ignoreWhitespace: false }
     )
     if (import.meta.env.DEV) {
-      console.log(lineDiffs)
+      console.log(`diffLines(): `, lineDiffs)
     }
     setChanges(lineDiffs)
   }, [])
