@@ -48,9 +48,10 @@ function changesReducer(_prevState: typeof initialState, action: ACTIONTYPE) {
 }
 
 export function Diff() {
-  const [isPending, startTransition] = useTransition()
+  const [_isPending, startTransition] = useTransition()
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef('')
+  const prevInputRef = useRef('')
   const [state, dispatch] = useReducer(changesReducer, initialState)
 
   const ButtonBox = useMemo(function ButtonBox() {
@@ -86,6 +87,7 @@ export function Diff() {
             className='rounded-sm px-6 py-1 mb-4 transition-colors bg-red-600 hover:bg-red-500 focus:bg-red-500 dark:bg-red-800 dark:hover:bg-red-700 dark:focus:bg-red-700 text-white tracking-wide'
             onClick={() => {
               inputRef.current = ''
+              prevInputRef.current = ''
               if (editorRef.current) {
                 editorRef.current.value = ''
                 dispatch({ type: 'reset'})
@@ -103,6 +105,10 @@ export function Diff() {
       alert('Invalid input.')
       return
     }
+    // Don't re-render if input did not change
+    if (prevInputRef.current === inputRef.current) {
+      return
+    }
     const result = run(inputRef.current, { rules: { preset: 'default' } }).result
     const lineDiffs = diffLines(inputRef.current, result, {
       ignoreWhitespace: false
@@ -112,6 +118,9 @@ export function Diff() {
       console.log(`diffLines(): `, lineDiffs)
     }
 
+    // Update previous input content.
+    prevInputRef.current = inputRef.current
+    // Trigger a state transition.
     startTransition(() => {
       dispatch({ type: 'lint', payload: lineDiffs })
     })
@@ -124,7 +133,7 @@ export function Diff() {
       {/* Editor */}
       <Editor ref={editorRef} onChange={(e) => inputRef.current = e.target.value} />
       {/* Diff View */}
-      <DiffView changes={state.changes} {...{ isPending }} />
+      <DiffView changes={state.changes} />
     </div>
   )
 }

@@ -6,13 +6,12 @@ import { LineNumber } from './LineNumber'
 
 interface DVProps {
   changes: Change[]
-  isPending: boolean
 }
 
-export const DiffView = memo(function DiffView({ changes, isPending }: DVProps) {
+export const DiffView = memo(function DiffView({ changes }: DVProps) {
   return (
     <div className='overflow-auto text-slate-600 dark:text-slate-300 dark:border-gray-500 rounded border p-4 grid grid-cols-2 items-center'>
-      {changes.length && !isPending ? (
+      {changes.length ? (
         <>
           <h2 key='title-before' className='font-semibold'>Before</h2>
           <h2 key='title-after' className='font-semibold'>After</h2>
