@@ -1,7 +1,7 @@
-import type { Change } from "diff"
+import type { Change } from 'diff'
 import { diffChars } from 'diff'
 
-import { LineNumber } from "./LineNumber"
+import { LineNumber } from './LineNumber'
 
 interface DVProps {
   changes: Change[] | undefined
