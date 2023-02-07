@@ -1,6 +1,6 @@
 import { run } from 'zhlint'
 import { type Change, diffLines } from 'diff'
-import { useCallback, useState, useRef, useMemo } from 'react'
+import { useCallback, useRef, useMemo, useTransition, useReducer } from 'react'
 
 import { Editor } from './Editor'
 import { DiffView } from './DiffView'
@@ -23,10 +23,35 @@ const contentPresets = [
     - Gets the toolkit for the component    (不推荐)`,
 ]
 
+const initialState: {
+  changes: Change[]
+} = {
+  changes: []
+}
+
+type ACTIONTYPE = {
+  type: 'reset'
+} | {
+  type: 'lint'
+  payload: Change[]
+}
+
+function changesReducer(_prevState: typeof initialState, action: ACTIONTYPE) {
+  switch (action.type) {
+    case 'lint':
+      return { changes: action.payload }
+    case 'reset':
+      return { changes: [] }
+    default:
+      throw new Error(`Unexpected action type detected!`)
+  }
+}
+
 export function Diff() {
+  const [isPending, startTransition] = useTransition()
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef('')
-  const [changes, setChanges] = useState<Change[]>()
+  const [state, dispatch] = useReducer(changesReducer, initialState)
 
   const ButtonBox = useMemo(function ButtonBox() {
     return (
@@ -63,7 +88,7 @@ export function Diff() {
               inputRef.current = ''
               if (editorRef.current) {
                 editorRef.current.value = ''
-                setChanges(undefined)
+                dispatch({ type: 'reset'})
               }
             }}>
             Clear
@@ -87,7 +112,9 @@ export function Diff() {
       console.log(`diffLines(): `, lineDiffs)
     }
 
-    setChanges(lineDiffs)
+    startTransition(() => {
+      dispatch({ type: 'lint', payload: lineDiffs })
+    })
   }, [])
 
   return (
@@ -97,7 +124,7 @@ export function Diff() {
       {/* Editor */}
       <Editor ref={editorRef} onChange={(e) => inputRef.current = e.target.value} />
       {/* Diff View */}
-      <DiffView {...{ changes }} />
+      <DiffView changes={state.changes} {...{ isPending }} />
     </div>
   )
 }
