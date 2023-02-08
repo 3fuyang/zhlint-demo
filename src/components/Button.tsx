@@ -3,13 +3,15 @@ import type { PropsWithChildren } from 'react'
 interface BProps {
   id?: string
   type?: 'primary' | 'info' | 'danger'
+  size?: 'base' | 'sm'
   onClick?: () => void
 }
 
 export function Button({
   id = 'btn',
   type = 'primary',
-  onClick = () => {},
+  size = 'base',
+  onClick = () => ({}),
   children,
 }: PropsWithChildren<BProps>) {
   return (
@@ -17,7 +19,8 @@ export function Button({
       id={id}
       type="button"
       className={[
-        'mb-4 rounded-sm px-6 py-1 tracking-wide  text-white transition-colors',
+        'rounded-sm px-6 py-1 tracking-wide text-white transition-colors',
+        size === 'base' ? 'px-6' : 'px-4',
         type === 'primary'
           ? 'bg-green-600 hover:bg-green-500 focus:bg-green-500 dark:bg-green-800 dark:hover:bg-green-700 dark:focus:bg-green-700'
           : '',

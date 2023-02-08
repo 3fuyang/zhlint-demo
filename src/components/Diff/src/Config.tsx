@@ -1,10 +1,12 @@
 import { memo } from 'react'
 import type { Dispatch } from 'react'
 
+import { Input } from '../../Input'
 import { Button } from '../../Button'
 import type { Rules } from './util'
 import { Radio } from '../../Radio'
 import { Switch } from '../../Switch'
+import { Select } from '../../Select'
 
 export type RULES_ACTION_TYPE =
   | {
@@ -61,8 +63,8 @@ export const Config = memo(function Config({ rules, dispatchRules }: CProps) {
                   value="simplified"
                   onChange={() =>
                     dispatchRules({
-                      type: key as keyof Rules,
-                      payload: 'simplified' as any,
+                      type: 'unifiedPunctuation',
+                      payload: 'simplified',
                     })
                   }
                 />
@@ -75,21 +77,21 @@ export const Config = memo(function Config({ rules, dispatchRules }: CProps) {
                   value="traditional"
                   onChange={() =>
                     dispatchRules({
-                      type: key as keyof Rules,
-                      payload: 'traditional' as any,
+                      type: 'unifiedPunctuation',
+                      payload: 'traditional',
                     })
                   }
                 />
               </div>
             ) : typeof val === 'boolean' ? (
-              <div id={key} className="flex items-center gap-3">
+              <div id={key}>
                 <Switch
                   label={`${key}Switcher`}
                   value={val}
                   onChange={(newVal) =>
                     dispatchRules({
-                      type: key as keyof Rules,
-                      payload: newVal as any,
+                      type: key as 'noSinglePair',
+                      payload: newVal,
                     })
                   }
                 />
@@ -97,24 +99,39 @@ export const Config = memo(function Config({ rules, dispatchRules }: CProps) {
             ) : typeof val === 'string' ? (
               <div className="flex items-center">
                 {/* Text Input */}
-                <input
-                  placeholder="Please input"
-                  className="rounded-sm border bg-white px-2 py-1 text-xs tracking-wide outline-0 transition-colors hover:border-green-600 focus:border-green-600 dark:border-gray-500 dark:bg-gray-800 dark:hover:border-emerald-400 dark:focus:border-emerald-400"
-                  type="text"
+                <Input
                   name={key}
                   id={key}
                   value={val}
                   onChange={(e) =>
                     dispatchRules({
-                      type: key as keyof Rules,
-                      payload: e.target.value as any,
+                      type: key as 'halfWidthPunctuation',
+                      payload: e.target.value,
                     })
                   }
                 />
               </div>
             ) : (
               // Abbrs
-              <div></div>
+              <div>
+                <Select
+                  tags={val}
+                  handleDelete={(index) => {
+                    const abbrsCpy = [...val]
+                    abbrsCpy.splice(index, 1)
+                    dispatchRules({
+                      type: 'skipAbbrs',
+                      payload: abbrsCpy,
+                    })
+                  }}
+                  handleAdd={(newAbbr) => {
+                    dispatchRules({
+                      type: 'skipAbbrs',
+                      payload: [...val, newAbbr],
+                    })
+                  }}
+                />
+              </div>
             )}
           </li>
         ))}

@@ -3,7 +3,7 @@ interface RProps {
   name: string
   value: string
   checked: boolean
-  onChange: (...args: any[]) => any
+  onChange: () => void
 }
 
 export function Radio({ id, name, value, checked, onChange }: RProps) {
