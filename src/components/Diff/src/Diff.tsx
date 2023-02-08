@@ -2,48 +2,46 @@ import { run } from 'zhlint'
 import { type Change, diffLines } from 'diff'
 import { useCallback, useRef, useMemo, useTransition, useReducer } from 'react'
 
+import { Button } from '../../Button'
+import { PRESETS, initDefaultRules, type Rules } from './util'
+import { Config, type RULES_ACTION_TYPE } from './Config'
 import { Editor } from './Editor'
 import { DiffView } from './DiffView'
 
-const contentPresets = [
-  `# Overview
+const initialChanges: Change[] = []
 
-半角逗号加空格结尾, "半角括号包裹"，半角冒号结尾:
+type CHANGES_ACTION_TYPE =
+  | {
+      type: 'reset'
+    }
+  | {
+      type: 'lint'
+      payload: Change[]
+    }
 
-+ 全角句号结尾。
-+ 全半角内容之间no空格`,
-  `- 当注释用来描述代码时，应该保证使用 **描述性语句** 而非 **祈使句**
-
-    - Opens the file   (正确)
-    - Open the file    (错误)
-
-- 使用 "this" 而非"the"来指代当前事物
-
-    - Gets the toolkit for this component   (推荐)
-    - Gets the toolkit for the component    (不推荐)`,
-]
-
-const initialState: {
-  changes: Change[]
-} = {
-  changes: []
-}
-
-type ACTIONTYPE = {
-  type: 'reset'
-} | {
-  type: 'lint'
-  payload: Change[]
-}
-
-function changesReducer(_prevState: typeof initialState, action: ACTIONTYPE) {
+function changesReducer(
+  _prevState: typeof initialChanges,
+  action: CHANGES_ACTION_TYPE
+) {
   switch (action.type) {
     case 'lint':
-      return { changes: action.payload }
+      return [...action.payload]
     case 'reset':
-      return { changes: [] }
+      return []
     default:
       throw new Error(`Unexpected action type detected!`)
+  }
+}
+
+const initialRules: Rules = initDefaultRules()
+
+function rulesReducer(prevState: Rules, action: RULES_ACTION_TYPE) {
+  if (action.type === 'reset') {
+    return initialRules
+  }
+  return {
+    ...prevState,
+    [action.type]: action.payload,
   }
 }
 
@@ -51,89 +49,86 @@ export function Diff() {
   const [_isPending, startTransition] = useTransition()
   const editorRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef('')
-  const prevInputRef = useRef('')
-  const [state, dispatch] = useReducer(changesReducer, initialState)
-
-  const ButtonBox = useMemo(function ButtonBox() {
-    return (
-      <div className='flex gap-4 overflow-auto'>
-        <button
-          id='lint-btn'
-          type='button'
-          className='rounded-sm px-6 py-1 mb-4 transition-colors bg-green-600 hover:bg-green-500 focus:bg-green-500 dark:bg-green-800 dark:hover:bg-green-700 dark:focus:bg-green-700 text-white tracking-wide'
-          onClick={() => triggerLint()}>
-          Lint
-        </button>
-        {contentPresets.map((preset, i) => (
-          <button
-            id={`preset-btn-${i + 1}`}
-            type='button'
-            key={i}
-            className='rounded-sm px-6 py-1 mb-4 transition-colors bg-green-600 hover:bg-green-500 focus:bg-green-500 dark:bg-green-800 dark:hover:bg-green-700 dark:focus:bg-green-700 text-white tracking-wide'
-            onClick={() => {
-              inputRef.current = preset
-              if (editorRef.current) {
-                editorRef.current.value = preset
-                triggerLint()
-              }
-            }}>
-            Preset {i + 1}
-          </button>
-        ))}
-        <div className='flex-1 flex flex-row-reverse'>
-          <button
-            id='clr-btn'
-            type='button'
-            className='rounded-sm px-6 py-1 mb-4 transition-colors bg-red-600 hover:bg-red-500 focus:bg-red-500 dark:bg-red-800 dark:hover:bg-red-700 dark:focus:bg-red-700 text-white tracking-wide'
-            onClick={() => {
-              inputRef.current = ''
-              prevInputRef.current = ''
-              if (editorRef.current) {
-                editorRef.current.value = ''
-                dispatch({ type: 'reset'})
-              }
-            }}>
-            Clear
-          </button>
-        </div>
-      </div>
-    )
-  }, [])
+  const [changes, dispatchChanges] = useReducer(changesReducer, initialChanges)
+  const [rules, dispatchRules] = useReducer(rulesReducer, initialRules)
 
   const triggerLint = useCallback(() => {
     if (!inputRef.current) {
       alert('Invalid input.')
       return
     }
-    // Don't re-render if input did not change
-    if (prevInputRef.current === inputRef.current) {
-      return
-    }
-    const result = run(inputRef.current, { rules: { preset: 'default' } }).result
+    const result = run(inputRef.current, {
+      rules: {
+        ...rules,
+        preset: '',
+      },
+    }).result
     const lineDiffs = diffLines(inputRef.current, result, {
-      ignoreWhitespace: false
+      ignoreWhitespace: false,
     })
-
-    if (import.meta.env.DEV) {
-      console.log(`diffLines(): `, lineDiffs)
-    }
-
-    // Update previous input content.
-    prevInputRef.current = inputRef.current
     // Trigger a state transition.
     startTransition(() => {
-      dispatch({ type: 'lint', payload: lineDiffs })
+      dispatchChanges({ type: 'lint', payload: lineDiffs })
     })
-  }, [])
+  }, [rules])
+
+  const ButtonBox = useMemo(
+    function ButtonBox() {
+      return (
+        <div className="flex gap-4 overflow-auto">
+          <Button id="lint-btn" type="primary" onClick={() => triggerLint()}>
+            Lint
+          </Button>
+          {PRESETS.map((preset, i) => (
+            <Button
+              key={i}
+              id={`preset-btn-${i + 1}`}
+              type="primary"
+              onClick={() => {
+                inputRef.current = preset
+                if (editorRef.current) {
+                  editorRef.current.value = preset
+                  triggerLint()
+                }
+              }}
+            >
+              Preset {i + 1}
+            </Button>
+          ))}
+          <div className="flex flex-1 flex-row-reverse">
+            <Button
+              id="clr-btn"
+              type="danger"
+              onClick={() => {
+                inputRef.current = ''
+                if (editorRef.current) {
+                  editorRef.current.value = ''
+                  dispatchChanges({ type: 'reset' })
+                }
+              }}
+            >
+              Clear
+            </Button>
+          </div>
+        </div>
+      )
+    },
+    [triggerLint]
+  )
 
   return (
     <div>
+      {/* Config Form */}
+      <Config {...{ rules, dispatchRules }} />
       {/* Btn Box */}
       {ButtonBox}
       {/* Editor */}
-      <Editor ref={editorRef} onChange={(e) => inputRef.current = e.target.value} />
+      <Editor
+        ref={editorRef}
+        onChange={(e) => (inputRef.current = e.target.value)}
+      />
       {/* Diff View */}
-      <DiffView changes={state.changes} />
+      <DiffView {...{ changes }} />
     </div>
   )
 }

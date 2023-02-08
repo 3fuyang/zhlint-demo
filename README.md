@@ -8,7 +8,7 @@ The diffing is provided by [diff](https://github.com/kpdecker/jsdiff).
 
 ## How to Run
 
-``` shell
+```shell
 npm ci
 
 npm run dev
