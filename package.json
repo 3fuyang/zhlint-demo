@@ -8,7 +8,8 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "lint": "prettier -w . && eslint --fix ."
   },
   "dependencies": {
     "@astrojs/react": "^2.0.2",
@@ -23,6 +24,13 @@
     "zhlint": "^0.7.1"
   },
   "devDependencies": {
-    "@types/diff": "^5.0.2"
+    "@types/diff": "^5.0.2",
+    "eslint": "^8.33.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-plugin-astro": "^0.23.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "prettier": "^2.8.4",
+    "prettier-plugin-astro": "^0.8.0",
+    "prettier-plugin-tailwindcss": "^0.2.2"
   }
 }
