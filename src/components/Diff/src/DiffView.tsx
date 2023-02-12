@@ -1,34 +1,32 @@
+import type { JSX } from 'solid-js'
+import { For, createMemo, Show } from 'solid-js'
 import type { Change } from 'diff'
 import { diffChars } from 'diff'
-import { memo } from 'react'
 
 import { LineNumber } from './LineNumber'
+import { merge } from '../../../utils/merge'
 
 interface DVProps {
   changes: Change[]
 }
 
-export const DiffView = memo(function DiffView({ changes }: DVProps) {
+export function DiffView(props: DVProps) {
+  const diffViews = createMemo(() => {
+    return generateDiffView(props.changes)
+  })
   return (
-    <div className="grid grid-cols-2 items-center overflow-auto rounded border p-4 text-slate-600 dark:border-gray-500 dark:text-slate-300">
-      {changes.length ? (
-        <>
-          <h2 key="title-before" className="font-semibold">
-            Before
-          </h2>
-          <h2 key="title-after" className="font-semibold">
-            After
-          </h2>
-          {generateDiffView(changes)}
-        </>
-      ) : (
-        <h2 key="title-diff-view" className="col-span-2 mx-auto tracking-wide">
-          Diff View
-        </h2>
-      )}
+    <div class="grid grid-cols-2 items-center overflow-auto rounded border p-4 text-slate-600 dark:border-gray-500 dark:text-slate-300">
+      <Show
+        when={props.changes.length}
+        fallback={<h2 class="col-span-2 mx-auto tracking-wide">Diff View</h2>}
+      >
+        <h2 class="font-semibold">Before</h2>
+        <h2 class="font-semibold">After</h2>
+        {diffViews()}
+      </Show>
     </div>
   )
-})
+}
 
 /**
  * An abstraction of text elements emitted by diffing.
@@ -62,24 +60,22 @@ function generateDiffView(diffs: Change[]) {
       count++
     } else if (!firstChange.added) {
       const normalCellLeft = (
-        <div
-          key={`${count}-normal-left`}
-          className="flex rounded-sm bg-white p-1 dark:bg-black"
-        >
+        <div class="flex rounded-sm bg-white p-1 dark:bg-black">
           <LineNumber no={count} />
-          <div className="flex-1 whitespace-pre-wrap">
-            {escapeHTMLTags(firstChange.value)}
+          <div class="flex-1 whitespace-pre-wrap">
+            <For each={escapeHTMLTags(firstChange.value)}>
+              {(tag) => <>{tag}</>}
+            </For>
           </div>
         </div>
       )
       const normalCellRight = (
-        <div
-          key={`${count}-normal-right`}
-          className="flex rounded-sm bg-white p-1 dark:bg-black"
-        >
+        <div class="flex rounded-sm bg-white p-1 dark:bg-black">
           <LineNumber no={count} />
-          <div className="flex-1 whitespace-pre-wrap">
-            {escapeHTMLTags(firstChange.value)}
+          <div class="flex-1 whitespace-pre-wrap">
+            <For each={escapeHTMLTags(firstChange.value)}>
+              {(tag) => <>{tag}</>}
+            </For>
           </div>
         </div>
       )
@@ -130,8 +126,7 @@ function parseLineDiff(removed: Change, added: Change) {
 function parsePres(pres: Token[], side: 'left' | 'right', lineNumber: number) {
   return (
     <div
-      key={`${lineNumber}-${side}-pre`}
-      className={[
+      class={[
         side === 'left'
           ? 'bg-red-100 dark:bg-red-900'
           : 'bg-green-100 dark:bg-green-900',
@@ -141,23 +136,22 @@ function parsePres(pres: Token[], side: 'left' | 'right', lineNumber: number) {
         .trim()}
     >
       <LineNumber no={lineNumber} />
-      <div className="flex-1">
-        {pres.map(({ type, value }, i) => {
-          return (
-            <span
-              key={`${i + 1}-token-${type}`}
-              className={[
-                type === 'added' ? 'bg-green-300 dark:bg-green-700' : '',
-                type === 'removed' ? 'bg-red-300 dark:bg-red-700' : '',
-                'whitespace-pre-wrap rounded-sm',
-              ]
-                .join(' ')
-                .trim()}
-            >
-              {escapeHTMLTags(value)}
-            </span>
-          )
-        })}
+      <div class="flex-1">
+        <For each={pres}>
+          {({ type, value }) => {
+            return (
+              <span
+                class={merge([
+                  type === 'added' ? 'bg-green-300 dark:bg-green-700' : '',
+                  type === 'removed' ? 'bg-red-300 dark:bg-red-700' : '',
+                  'whitespace-pre-wrap rounded-sm',
+                ])}
+              >
+                <For each={escapeHTMLTags(value)}>{(tag) => <>{tag}</>}</For>
+              </span>
+            )
+          }}
+        </For>
       </div>
     </div>
   )
@@ -172,10 +166,11 @@ function escapeHTMLTags(str: string) {
   const segs = str.split('\n')
   result.unshift(
     ...segs
-      .reduce<typeof result>((prev, curr, index) => {
-        curr
-          ? prev.push(curr, <br key={`${index + 1}-br`} />)
-          : prev.push(<br key={`${index + 1}-br`} />)
+      .reduce<typeof result>((prev, curr) => {
+        if (curr) {
+          prev.push(curr)
+        }
+        prev.push(<br />)
         return prev
       }, [])
       // Remove the trailing line break.

@@ -1,5 +1,5 @@
-import type { ChangeEventHandler } from 'react'
-import { forwardRef } from 'react'
+import type { JSX } from 'solid-js'
+import { mergeProps } from 'solid-js'
 
 interface IProps {
   placeholder?: string
@@ -7,42 +7,22 @@ interface IProps {
   name: string
   value?: string
   readonly?: boolean
-  onChange?: ChangeEventHandler<HTMLInputElement>
+  onChange?: JSX.EventHandler<HTMLInputElement, Event>
 }
 
-export const Input = forwardRef<HTMLInputElement, IProps>(function Input(
-  {
-    placeholder = 'Please input',
-    id,
-    name,
-    value,
-    readonly = false,
-    onChange = () => ({}),
-  }: IProps,
-  ref?
-) {
-  return value ? (
+export function Input(_props: IProps) {
+  const props = mergeProps({ value: '', readonly: false }, _props)
+
+  return (
     <input
-      ref={ref}
-      placeholder={placeholder}
-      className="rounded-sm border bg-white px-2 py-1 text-xs tracking-wide outline-0 transition-colors hover:border-green-600 focus:border-green-600 dark:border-gray-500 dark:bg-gray-800 dark:hover:border-emerald-400 dark:focus:border-emerald-400"
+      placeholder={props.placeholder ?? 'Please input'}
+      class="rounded-sm border bg-white px-2 py-1 text-xs tracking-wide outline-0 transition-colors hover:border-green-600 focus:border-green-600 dark:border-gray-500 dark:bg-gray-800 dark:hover:border-emerald-400 dark:focus:border-emerald-400"
       type="text"
-      name={name}
-      id={id}
-      value={value}
-      readOnly={readonly}
-      onChange={onChange}
-    />
-  ) : (
-    <input
-      ref={ref}
-      placeholder={placeholder}
-      className="rounded-sm border bg-white px-2 py-1 text-xs tracking-wide outline-0 transition-colors hover:border-green-600 focus:border-green-600 dark:border-gray-500 dark:bg-gray-800 dark:hover:border-emerald-400 dark:focus:border-emerald-400"
-      type="text"
-      name={name}
-      id={id}
-      readOnly={readonly}
-      onChange={onChange}
+      name={props.name}
+      id={props.id}
+      value={props.value}
+      readOnly={props.readonly}
+      onChange={(e) => props.onChange?.(e)}
     />
   )
-})
+}
