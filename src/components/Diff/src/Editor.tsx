@@ -1,20 +1,18 @@
-import { type ChangeEventHandler, forwardRef } from 'react'
+import type { JSX } from 'solid-js'
 
 interface EProps {
-  onChange: ChangeEventHandler<HTMLTextAreaElement>
+  content: string
+  onChange: JSX.EventHandler<HTMLTextAreaElement, Event>
 }
 
-export const Editor = forwardRef<HTMLTextAreaElement, EProps>(function Editor(
-  { onChange },
-  ref
-) {
+export const Editor = function Editor(props: EProps) {
   return (
     <textarea
-      ref={ref}
       placeholder="Type content which needs linting here."
-      className="w-full overflow-auto rounded-sm border bg-gray-100/95 p-4 outline-none dark:border-gray-500 dark:bg-gray-900"
+      class="w-full overflow-auto rounded-sm border bg-gray-100/95 p-4 outline-none dark:border-gray-500 dark:bg-gray-900"
       rows={6}
-      {...{ onChange }}
+      value={props.content}
+      onChange={props.onChange}
     />
   )
-})
+}
