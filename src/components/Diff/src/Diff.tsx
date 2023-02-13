@@ -75,7 +75,7 @@ export function Diff() {
   const ButtonBox = useMemo(
     function ButtonBox() {
       return (
-        <div className="flex gap-4 overflow-auto mb-4">
+        <div className="mb-4 flex gap-4 overflow-auto">
           <Button id="lint-btn" type="primary" onClick={() => triggerLint()}>
             Lint
           </Button>

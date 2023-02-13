@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro'
 import Section from '../components/Section.astro'
 import Diff from '../components/Diff'
+import { SQLEditor } from '../components/SQLEditor'
 ---
 
 <style is:global>
@@ -41,5 +42,20 @@ import Diff from '../components/Diff'
     <Section>
       <Diff client:idle />
     </Section>
+    <Section>
+      <SQLEditor client:idle />
+    </Section>
   </main>
 </Layout>
+<script is:inline>
+  // Polyfill
+  const process = {
+    env: {
+      NODE_DEBUG: false,
+    },
+  }
+  console.log(
+    'Notice: A `process` polyfill is injected to make some third-party libraries work: ',
+    process
+  )
+</script>

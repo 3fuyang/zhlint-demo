@@ -21,7 +21,7 @@ export function Tag({
             viewBox="0 0 24 24"
             strokeWidth="2"
             stroke="currentColor"
-            className="transition-colors h-3 w-3 cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            className="h-3 w-3 cursor-pointer text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-200"
           >
             <path
               strokeLinecap="round"
