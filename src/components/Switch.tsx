@@ -1,6 +1,6 @@
 import { For } from 'solid-js'
 
-import { merge } from '../utils/merge'
+import { merge } from '~/utils/merge'
 
 interface SProps {
   label: string

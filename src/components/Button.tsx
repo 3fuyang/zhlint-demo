@@ -1,7 +1,7 @@
 import type { ParentProps, JSX } from 'solid-js'
 import { mergeProps } from 'solid-js'
 
-import { merge } from '../utils/merge'
+import { merge } from '~/utils/merge'
 
 interface BProps {
   id?: string
