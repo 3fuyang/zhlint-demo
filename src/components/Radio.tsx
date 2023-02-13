@@ -1,5 +1,6 @@
 import type { JSX } from 'solid-js'
-import { merge } from '../utils/merge'
+
+import { merge } from '~/utils/merge'
 
 interface RProps {
   id: string
