@@ -1,4 +1,3 @@
-import { run } from 'zhlint'
 import type { Change } from 'diff'
 import { diffLines } from 'diff'
 import { createSignal, For } from 'solid-js'
@@ -10,6 +9,8 @@ import type { Rules } from './util'
 import { Config } from './Config'
 import { Editor } from './Editor'
 import { DiffView } from './DiffView'
+
+const { run } = await import('zhlint')
 
 export function Diff() {
   const [rules, setRules] = createStore<Rules>(initDefaultRules())
@@ -43,6 +44,7 @@ export function Diff() {
               type="primary"
               onClick={() => {
                 setContent(preset)
+                triggerLint()
               }}
             >
               Preset {i() + 1}
