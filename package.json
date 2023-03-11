@@ -15,6 +15,7 @@
     "@astrojs/react": "^2.0.2",
     "@astrojs/tailwind": "^3.0.1",
     "@codemirror/lang-sql": "^6.4.0",
+    "@fwio/ts-mysql-parser": "^0.0.3",
     "@types/react": "^18.0.27",
     "@types/react-dom": "^18.0.10",
     "@uiw/react-codemirror": "^4.19.9",

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react'
+
 import { sql, MySQL } from '@codemirror/lang-sql'
 import CodeMirror, { getStatistics } from '@uiw/react-codemirror'
 import type {
   ReactCodeMirrorProps,
   ReactCodeMirrorRef,
 } from '@uiw/react-codemirror'
-import MySQLParser, { SqlMode } from 'ts-mysql-parser'
+
+import MySQLParser, { SqlMode } from '@fwio/ts-mysql-parser'
 
 const parser = new MySQLParser({
   version: '5.7.7',
@@ -26,7 +28,7 @@ export function SQLEditor() {
   const editorRef = useRef<ReactCodeMirrorRef>(null)
   const codeRef = useRef<string>(value)
   const anchorRef = useRef<number>(-1)
-
+  
   const onChange = useCallback<NonNullable<ReactCodeMirrorProps['onChange']>>(
     (value) => {
       codeRef.current = value
@@ -69,11 +71,13 @@ export function SQLEditor() {
   }, [onClick])
 
   return (
-    <CodeMirror
-      ref={editorRef}
-      height="20rem"
-      {...{ value, extensions, onUpdate, onChange }}
-    />
+    <>
+      <CodeMirror
+        ref={editorRef}
+        height="20rem"
+        {...{ value, extensions, onUpdate, onChange }}
+      />
+    </>
   )
 }
 
@@ -84,26 +88,31 @@ export function SQLEditor() {
  * @returns A tuple as `[start, stop]`.
  */
 function filterStatement(code: string, anchor: number) {
-  /**
-   * @example
-   * ``` js
-   * [
-   *   {
-   *     start: 0,
-   *     stop: 20,
-   *     text: 'SELECT id FROM users'
-   *   },
-   *   // ...
-   * ]
-   * ```
-   */
-  const statements = parser.splitStatements(code)
+  try {
+    /**
+     * @example
+     * ``` js
+     * [
+     *   {
+     *     start: 0,
+     *     stop: 20,
+     *     text: 'SELECT id FROM users'
+     *   },
+     *   // ...
+     * ]
+     * ```
+     */
+    const statements = parser.splitStatements(code)
 
-  for (const { start, stop } of statements) {
-    if (anchor > start && anchor <= stop) {
-      return [start, stop] as const
+    for (const { start, stop } of statements) {
+      if (anchor > start && anchor <= stop) {
+        return [start, stop] as const
+      }
     }
-  }
 
-  return [0, 0] as const
+    return [0, 0] as const
+  } catch(err) {
+    import.meta.env.DEV && console.log(err)
+    return [0, 0] as const
+  }
 }

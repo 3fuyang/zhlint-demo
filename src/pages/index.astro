@@ -47,15 +47,3 @@ import { SQLEditor } from '../components/SQLEditor'
     </Section>
   </main>
 </Layout>
-<script is:inline>
-  // Polyfill
-  const process = {
-    env: {
-      NODE_DEBUG: false,
-    },
-  }
-  console.log(
-    'Notice: A `process` polyfill is injected to make some third-party libraries work: ',
-    process
-  )
-</script>
