@@ -9,13 +9,17 @@ import type {
 
 import MySQLParser, { SqlMode } from '@fwio/ts-mysql-parser'
 
+import { highlightExtension, highlighEffect, highlightDecoration } from '../../../extensions/highlight'
+
 const parser = new MySQLParser({
   version: '5.7.7',
   mode: SqlMode.AnsiQuotes,
 })
 
-//const extensions = [StreamLanguage.define(mySQL)]
-const extensions = [sql({ dialect: MySQL })]
+const extensions = [
+  sql({ dialect: MySQL }),
+  highlightExtension,
+]
 
 const value = `SELECT id
 FROM users;SELECT name
@@ -28,47 +32,54 @@ export function SQLEditor() {
   const editorRef = useRef<ReactCodeMirrorRef>(null)
   const codeRef = useRef<string>(value)
   const anchorRef = useRef<number>(-1)
-  
-  const onChange = useCallback<NonNullable<ReactCodeMirrorProps['onChange']>>(
-    (value) => {
-      codeRef.current = value
-      //console.log('onChange - ', viewUpdate)
-    },
-    []
-  )
 
-  const onUpdate = useCallback<NonNullable<ReactCodeMirrorProps['onUpdate']>>(
-    (viewUpdate) => {
-      const statstics = getStatistics(viewUpdate)
-      console.log('Stastics: ', statstics)
-      anchorRef.current = statstics.selectionAsSingle.anchor
-      //console.log('onUpdate - ', viewUpdate)
-    },
-    []
-  )
-
-  const onClick = useCallback(() => {
+  const highlightStatament = useCallback(() => {
     const [start, stop] = filterStatement(codeRef.current, anchorRef.current)
     if (stop === 0) {
       return
     }
-    editorRef.current?.view?.dispatch({
-      selection: {
-        anchor: start,
-        head: stop,
-      },
-    })
-    // console.log('Selected text: ', text)
-    // console.log('Splitted statements: ', statements)
+    editorRef.current?.view?.dispatch(
+      {
+        effects: [
+          /** Highlight the active sql statement. */
+          highlighEffect.of([
+            highlightDecoration.range(start, stop)
+          ])
+        ]
+      }
+    )
   }, [])
 
+  /** Fired whenever a change occurs to the document. */
+  const onChange = useCallback<NonNullable<ReactCodeMirrorProps['onChange']>>(
+    (value) => {
+      codeRef.current = value
+      highlightStatament()
+      //console.log('onChange - ', viewUpdate)
+    },
+    [highlightStatament]
+  )
+
+  /** Fired whenever any state change occurs within the editor, including non-document changes like lint results. */
+  const onUpdate = useCallback<NonNullable<ReactCodeMirrorProps['onUpdate']>>(
+    (viewUpdate) => {
+      const statstics = getStatistics(viewUpdate)
+      // console.log('Stastics: ', statstics)
+      anchorRef.current = statstics.selectionAsSingle.anchor
+    },
+    []
+  )
+
   useEffect(() => {
-    const editorDOMNode = editorRef.current
-    editorDOMNode?.editor?.addEventListener('click', onClick)
+    const tmpRef = editorRef.current
+    tmpRef?.editor?.addEventListener('keydown', highlightStatament)
+    tmpRef?.editor?.addEventListener('click', highlightStatament)
+
     return () => {
-      editorDOMNode?.editor?.removeEventListener('click', onClick)
+      tmpRef?.editor?.removeEventListener('keydown', highlightStatament)
+      tmpRef?.editor?.removeEventListener('click', highlightStatament)
     }
-  }, [onClick])
+  }, [highlightStatament])
 
   return (
     <>
@@ -111,7 +122,7 @@ function filterStatement(code: string, anchor: number) {
     }
 
     return [0, 0] as const
-  } catch(err) {
+  } catch (err) {
     import.meta.env.DEV && console.log(err)
     return [0, 0] as const
   }
