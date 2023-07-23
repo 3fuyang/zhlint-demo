@@ -1,6 +1,6 @@
 import type { Change } from 'diff'
 import { diffLines } from 'diff'
-import { createSignal, For } from 'solid-js'
+import { createSignal, For, Show } from 'solid-js'
 import { createStore } from 'solid-js/store'
 
 import { Button } from '../../Button'
@@ -16,6 +16,7 @@ export function Diff() {
   const [rules, setRules] = createStore<Rules>(initDefaultRules())
   const [content, setContent] = createSignal('')
   const [changes, setChanges] = createSignal<Change[]>([])
+  const [result, setResult] = createSignal('')
 
   const triggerLint = () => {
     if (!content()) {
@@ -25,6 +26,7 @@ export function Diff() {
     const result = run(content(), {
       rules,
     }).result
+    setResult(result)
     const lineDiffs = diffLines(content(), result, {
       ignoreWhitespace: false,
     })
@@ -51,7 +53,18 @@ export function Diff() {
             </Button>
           )}
         </For>
-        <div class="flex flex-1 flex-row-reverse">
+        <div class="flex flex-1 justify-end gap-4">
+          <Show when={result()}>
+            <Button
+              id='copy-btn'
+              type='info'
+              onClick={() => {
+                navigator.clipboard.writeText(result())
+              }}
+            >
+              Copy Result
+            </Button>
+          </Show>
           <Button
             id="clr-btn"
             type="danger"
