@@ -43,7 +43,7 @@ export function Diff() {
           {(preset, i) => (
             <Button
               id={`preset-btn-${i() + 1}`}
-              type="primary"
+              type="special"
               onClick={() => {
                 setContent(preset)
                 triggerLint()

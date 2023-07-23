@@ -2,6 +2,10 @@
 import Layout from '../layouts/Layout.astro'
 import Section from '../components/Section.astro'
 import Diff from '../components/Diff'
+
+const TITLE = 'Zhlint Playground'
+const REPO_URL = "https://github.com/3fuyang/zh-lint-demo"
+const ZHLINT_REPO_URL = "https://github.com/Jinjiang/zhlint"
 ---
 
 <style is:global>
@@ -12,14 +16,14 @@ import Diff from '../components/Diff'
     display: none;
   }
 </style>
-<Layout title="Zhlint Demo">
+<Layout title={TITLE}>
   <main>
     <Section>
       <div class="flex justify-between">
-        <h1 class="tracking-wide text-lg">Zhlint Demo</h1>
+        <h1 class="tracking-wide text-lg">{TITLE}</h1>
         <a
           class="transition-colors hover:text-slate-500 dark:hover:text-slate-300"
-          href="https://github.com/3fuyang/zh-lint-demo"
+          href={REPO_URL}
           target="_blank"
           rel="noreferrer"
         >
@@ -28,10 +32,10 @@ import Diff from '../components/Diff'
       </div>
     </Section>
     <Section>
-      This is a demo to test
+      This is an intuitive playground for
       <a
         class="text-green-700 transition-colors hover:text-green-600 focus:text-green-600 hover:underline focus:underline"
-        href="https://github.com/Jinjiang/zhlint"
+        href={ZHLINT_REPO_URL}
         target="_blank"
         rel="noreferrer"
       >
